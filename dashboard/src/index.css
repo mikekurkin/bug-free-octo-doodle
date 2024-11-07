@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    @apply light;
+  }
+
+  .light {
+    --bg-primary: theme('colors.gray.50');
+    --bg-secondary: theme('colors.white');
+    --text-primary: theme('colors.gray.900');
+    --text-secondary: theme('colors.gray.600');
+    --border-color: theme('colors.gray.200');
+  }
+
+  .dark {
+    --bg-primary: theme('colors.gray.900');
+    --bg-secondary: theme('colors.gray.800');
+    --text-primary: theme('colors.white');
+    --text-secondary: theme('colors.gray.400');
+    --border-color: theme('colors.gray.700');
+  }
+
+  body {
+    @apply bg-[var(--bg-primary)] text-[var(--text-primary)];
+  }
+}
