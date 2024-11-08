@@ -64,21 +64,21 @@ export const TeamDistributionChart: React.FC<TeamDistributionChartProps> = ({
     ],
   };
 
-  const efficiencyData = {
-    labels: efficiencyKDE.x,
-    datasets: [
-      {
-        label: t('charts.efficiencyDistribution'),
-        data: efficiencyKDE.y,
-        borderColor: 'rgb(16, 185, 129)',
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-        borderWidth: 2,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 0,
-      },
-    ],
-  };
+  // const efficiencyData = {
+  //   labels: efficiencyKDE.x,
+  //   datasets: [
+  //     {
+  //       label: t('charts.efficiencyDistribution'),
+  //       data: efficiencyKDE.y,
+  //       borderColor: 'rgb(16, 185, 129)',
+  //       backgroundColor: 'rgba(16, 185, 129, 0.1)',
+  //       borderWidth: 2,
+  //       fill: true,
+  //       tension: 0.4,
+  //       pointRadius: 0,
+  //     },
+  //   ],
+  // };
 
   const options = {
     responsive: true,
@@ -108,25 +108,28 @@ export const TeamDistributionChart: React.FC<TeamDistributionChartProps> = ({
         title: {
           display: true,
           text: t('charts.value')
+        },
+        ticks: {
+          callback: (value: number) => Math.round(value)
         }
       }
     },
   };
 
+  {/*<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">*/}
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
       <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
           {t('charts.pointsDistributionTitle')}
         </h3>
         <Line data={pointsData} options={options} />
       </div>
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-      <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-          {t('charts.efficiencyDistributionTitle')}
-        </h3>
-        <Line data={efficiencyData} options={options} />
-      </div>
-    </div>
   );
+  {/* <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+  <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+      {t('charts.efficiencyDistributionTitle')}
+    </h3>
+    <Line data={efficiencyData} options={options} />
+  </div>
+</div> */}
 };

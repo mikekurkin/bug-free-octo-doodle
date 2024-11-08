@@ -2,10 +2,11 @@ export interface GameResult {
   _id: string;
   game_id: number;
   team_id: string;
+  team?: Team;
   rounds: number[];
   sum: number;
   place: number;
-  rank_id?: string;
+  rank_id?: string | null;
   has_errors: boolean;
 }
 
@@ -13,6 +14,7 @@ export interface Game {
   _id: number;
   city_id: number;
   series_id: string;
+  series?: Series;
   number: string;
   date: Date;
   price: number;

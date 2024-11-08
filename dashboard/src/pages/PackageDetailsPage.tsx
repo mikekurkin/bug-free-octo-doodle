@@ -4,59 +4,61 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from "react-router-dom";
 import { GameCard } from "../components/GameCard";
 import { RoundPerformanceChart } from "../components/RoundPerformanceChart";
-import { cities, gameResults, games, series, teams } from "../data/mockData";
+import { useStorage } from "../contexts/StorageContext";
 import { Game, GameResult } from "../types/data";
 
 export const PackageDetailsPage = () => {
-  const { citySlug, seriesSlug, number } = useParams();
-  const city = cities.find(c => c.slug === citySlug);
-  const seriesObj = series.find(s => s.slug === seriesSlug);
+  const { citySlug, seriesSlug, number: packageNumber } = useParams();
+  const storage = useStorage();
+  const { t } = useTranslation();
 
   const [packageGames, setPackageGames] = useState<Game[]>([]);
   const [packageResults, setPackageResults] = useState<GameResult[]>([]);
-  const { t } = useTranslation();
 
   useEffect(() => {
-    if (city && seriesObj && number) {
-      const filteredGames = games.filter(game =>
-        game.city_id === city._id &&
-        game.series_id === seriesObj._id &&
-        game.number === number
-      );
-      setPackageGames(filteredGames);
+    const loadData = async () => {
+      if (!seriesSlug || !packageNumber) return;
 
-      const filteredResults = gameResults.filter(result =>
-        filteredGames.some(game => game._id === result.game_id)
-      );
-      setPackageResults(filteredResults);
-    }
-  }, [city, seriesObj, number]);
+      const seriesData = await storage.getSeriesBySlug(seriesSlug);
+
+      if (seriesData) {
+        const games = await storage.getGamesByPackage(seriesData._id, packageNumber);
+        setPackageGames(games);
+
+        const results = await storage.getGameResultsByPackage(seriesData._id, packageNumber, { withTeams: true });
+        setPackageResults(results);
+      }
+    };
+
+    loadData();
+  }, [citySlug, seriesSlug, packageNumber, storage]);
 
   const teamStandings = useMemo(() => {
     const standings = new Map<string, {
       team_id: string,
       team_name: string,
+      team_slug: string,
       totalPoints: number,
       rounds: number[],
       gameResults: GameResult[]
     }>();
 
-    packageResults.forEach(result => {
-      const team = teams.find(t => t._id === result.team_id);
-      if (!team) return;
+    packageResults.forEach((result) => {
+      if (!result.team) return;
 
-      const existing = standings.get(team._id) || {
-        team_id: team._id,
-        team_name: team.name,
+      const existing = standings.get(result.team._id) || {
+        team_id: result.team._id,
+        team_name: result.team.name,
+        team_slug: result.team.slug,
         totalPoints: 0,
-        rounds: [],
-        gameResults: []
+        rounds: [] as number[],
+        gameResults: [] as GameResult[]
       };
 
       existing.totalPoints += result.sum;
-      existing.rounds.push(...result.rounds);
-      existing.gameResults.push(result);
-      standings.set(team._id, existing);
+      existing.rounds = [...existing.rounds, ...result.rounds];
+      existing.gameResults = [...existing.gameResults, result];
+      standings.set(result.team._id, existing);
     });
 
     return Array.from(standings.values())
@@ -79,9 +81,9 @@ export const PackageDetailsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {packageGames.map(game => (
             <GameCard
-              key={game.id}
+              key={game._id}
               game={game}
-              results={packageResults.filter(r => r.game_id === game.id)}
+              results={packageResults.filter(r => r.game_id === game._id)}
             />
           ))}
         </div>
@@ -96,7 +98,6 @@ export const PackageDetailsPage = () => {
           <RoundPerformanceChart results={packageResults} />
         </div>
       </div>
-
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
         <h3 className="text-lg font-semibold p-6 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
@@ -137,7 +138,7 @@ export const PackageDetailsPage = () => {
                         <div key={result.game_id} className="flex items-center gap-1">
                           <span>#{result.place}</span>
                           <Link
-                            to={`/${citySlug}/games/${result.game_id}`}
+                            to={`/${citySlug}/game/${result.game_id}`}
                             className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                             title="Go to game"
                           >
@@ -149,7 +150,7 @@ export const PackageDetailsPage = () => {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                     <Link
-                      to={`/${citySlug}/teams/${team.slug}`}
+                      to={`/${citySlug}/teams/${team.team_slug}`}
                       className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                     >
                       {team.team_name}

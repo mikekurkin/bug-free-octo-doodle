@@ -1,11 +1,12 @@
 import { ArrowUpDown } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
-import { gameResults, rankMappings, teams } from '../data/mockData';
+import { useStorage } from '../contexts/StorageContext';
+import { GameResult, RankMapping } from '../types/data';
 
 interface GameResultsTableProps {
-  gameId: string;
+  gameId: number;
 }
 
 type SortField = 'sum' | 'place' | 'team';
@@ -13,20 +14,32 @@ type SortOrder = 'asc' | 'desc';
 
 export const GameResultsTable: React.FC<GameResultsTableProps> = ({ gameId }) => {
   const { t } = useTranslation();
+  const storage = useStorage();
   const [sort, setSort] = useState<{ field: SortField; order: SortOrder }>({
     field: 'place',
     order: 'asc'
   });
   const { citySlug } = useParams();
 
-  // Filter results for this game
-  let results = gameResults.filter(result => result.game_id === parseInt(gameId));
+  const [results, setResults] = useState<GameResult[]>([]);
+  const [rankMappings, setRankMappings] = useState<RankMapping[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const gameResults = await storage.getGameResults(gameId, { withTeams: true });
+      setResults(gameResults);
+
+      // Load rank mappings
+      const rankData = await storage.getRankMappings();
+      setRankMappings(rankData);
+    };
+
+    loadData();
+  }, [storage, gameId]);
 
   // Sort results
-  results = [...results].sort((a, b) => {
+  const sortedResults = [...results].sort((a, b) => {
     const multiplier = sort.order === 'asc' ? 1 : -1;
-    const teamA = teams.find(t => t._id === a.team_id);
-    const teamB = teams.find(t => t._id === b.team_id);
 
     switch (sort.field) {
       case 'sum':
@@ -34,7 +47,7 @@ export const GameResultsTable: React.FC<GameResultsTableProps> = ({ gameId }) =>
       case 'place':
         return (a.place - b.place) * multiplier;
       case 'team':
-        return (teamA?.name || '').localeCompare(teamB?.name || '') * multiplier;
+        return (a.team?.name || '').localeCompare(b.team?.name || '') * multiplier;
       default:
         return 0;
     }
@@ -93,7 +106,7 @@ export const GameResultsTable: React.FC<GameResultsTableProps> = ({ gameId }) =>
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {results.map((result, index) => (
+            {sortedResults.map((result, index) => (
               <tr key={`${result.game_id}-${index}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white">
                   #{result.place}
@@ -105,12 +118,14 @@ export const GameResultsTable: React.FC<GameResultsTableProps> = ({ gameId }) =>
                   }
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                  <Link
-                    to={`/${citySlug}/teams/${teams.find(t => t._id === result.team_id)?.slug}`}
-                    className="text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    {teams.find(t => t._id === result.team_id)?.name}
-                  </Link>
+                  {result.team && (
+                    <Link
+                      to={`/${citySlug}/teams/${result.team.slug}`}
+                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      {result.team.name}
+                    </Link>
+                  )}
                 </td>
                 {result.rounds.map((score, i) => (
                   <td key={i} className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">

@@ -1,0 +1,28 @@
+_id,city_id,series_id,number,date,price,location,address,is_stream,processed
+89021,17,c799f8ff-1597-4afa-b262-eb6397eadbb4,149,Fri Nov 01 2024 19:30:00 GMT+0300 (Moscow Standard Time),600,Хали-Гали,"Набережная канала Грибоедова, д. 36",false,true
+89014,17,d9a0419f-af24-44bc-b58b-e641a5b3e973,1,Fri Nov 01 2024 19:30:00 GMT+0300 (Moscow Standard Time),600,Rossi's Club,ул. Зодчего Росси 1/3,false,true
+89018,17,e1152e27-d41f-4b34-b3b1-faac7dba9380,889,Fri Nov 01 2024 19:30:00 GMT+0300 (Moscow Standard Time),600,Puberty,"наб. Выборгская, д.47",false,true
+89016,17,528d9012-8eea-4541-a2f8-2cee5c00f813,889,Fri Nov 01 2024 19:30:00 GMT+0300 (Moscow Standard Time),600,ЦИНЬ,ул. Камышовая д.17к1,false,true
+89036,0,16a410b8-fb8e-4d46-a426-f7ad6eedc62a,500,Fri Nov 01 2024 20:00:00 GMT+0300 (Moscow Standard Time),1000,"Везде, где есть интернет",,true,true
+89026,17,e1152e27-d41f-4b34-b3b1-faac7dba9380,890,Sat Nov 02 2024 15:30:00 GMT+0300 (Moscow Standard Time),600,Ресторан ParkKing,"Александровский парк, д.4",false,true
+89028,17,c88b0ba9-112d-4f1b-a8be-e897678994d5,4,Sat Nov 02 2024 19:30:00 GMT+0300 (Moscow Standard Time),600,Ресторан ParkKing,"Александровский парк, д.4",false,true
+89031,17,efef67ce-b4e5-4229-98ff-fbbc7971939d,1,Sat Nov 02 2024 19:30:00 GMT+0300 (Moscow Standard Time),600,Rossi's Club,ул. Зодчего Росси 1/3,false,true
+89037,0,16a410b8-fb8e-4d46-a426-f7ad6eedc62a,501,Sat Nov 02 2024 20:00:00 GMT+0300 (Moscow Standard Time),1000,"Везде, где есть интернет",,true,true
+89033,17,dd77408b-ebba-4913-aa87-80a3d8f48219,149,Sun Nov 03 2024 15:00:00 GMT+0300 (Moscow Standard Time),600,Хали-Гали,"Набережная канала Грибоедова, д. 36",false,true
+89032,17,e1152e27-d41f-4b34-b3b1-faac7dba9380,890,Sun Nov 03 2024 15:30:00 GMT+0300 (Moscow Standard Time),600,PALMA,"ул. Салова, 61",false,true
+89034,17,42c74c69-ff2e-4593-a550-ceabe0e1c8a3,1,Sun Nov 03 2024 19:30:00 GMT+0300 (Moscow Standard Time),600,Ресторан ParkKing,"Александровский парк, д.4",false,true
+89035,17,e1152e27-d41f-4b34-b3b1-faac7dba9380,888,Sun Nov 03 2024 19:30:00 GMT+0300 (Moscow Standard Time),600,PALMA,"ул. Салова, 61",false,true
+89793,17,e1152e27-d41f-4b34-b3b1-faac7dba9380,889,Sun Nov 03 2024 19:30:00 GMT+0300 (Moscow Standard Time),600,Rossi's Club,ул. Зодчего Росси 1/3,false,true
+89038,0,16a410b8-fb8e-4d46-a426-f7ad6eedc62a,502,Sun Nov 03 2024 20:00:00 GMT+0300 (Moscow Standard Time),1000,"Везде, где есть интернет",,true,true
+87991,17,1b28a8ea-e859-4a3a-b1f6-d8e7e5b2a402,1,Mon Nov 04 2024 14:00:00 GMT+0300 (Moscow Standard Time),500,VOKZAL 1853,"наб. Обводного канала, дом 118",false,true
+89596,17,e1152e27-d41f-4b34-b3b1-faac7dba9380,891,Mon Nov 04 2024 15:00:00 GMT+0300 (Moscow Standard Time),500,Хали-Гали,"Набережная канала Грибоедова, д. 36",false,true
+89525,17,1b456360-b95e-49da-b06b-9e8ae7a85b0a,11,Mon Nov 04 2024 16:00:00 GMT+0300 (Moscow Standard Time),500,Puberty,"наб. Выборгская, д.47",false,true
+89598,17,c799f8ff-1597-4afa-b262-eb6397eadbb4,149,Mon Nov 04 2024 19:30:00 GMT+0300 (Moscow Standard Time),500,The Legends,"ул. Садовая, 62",false,true
+89952,0,25fe5f44-36f7-4861-911f-ff3a290f2f7a,9,Mon Nov 04 2024 20:00:00 GMT+0300 (Moscow Standard Time),1000,"Везде, где есть интернет",,true,true
+89600,17,b0597679-db61-4a91-bab7-d6cfe0c2d064,10,Tue Nov 05 2024 19:30:00 GMT+0300 (Moscow Standard Time),500,Puberty,"наб. Выборгская, д.47",false,true
+89602,17,e1152e27-d41f-4b34-b3b1-faac7dba9380,892,Tue Nov 05 2024 19:30:00 GMT+0300 (Moscow Standard Time),500,Хали-Гали,"Набережная канала Грибоедова, д. 36",false,true
+89607,17,42c74c69-ff2e-4593-a550-ceabe0e1c8a3,1,Wed Nov 06 2024 19:30:00 GMT+0300 (Moscow Standard Time),500,The Legends,"ул. Садовая, 62",false,true
+89605,17,41f397ab-a828-4b0a-a8f4-6f03a041b463,7,Wed Nov 06 2024 19:30:00 GMT+0300 (Moscow Standard Time),500,Хали-Гали,"Набережная канала Грибоедова, д. 36",false,true
+89610,17,e1152e27-d41f-4b34-b3b1-faac7dba9380,893,Wed Nov 06 2024 19:30:00 GMT+0300 (Moscow Standard Time),500,Рестоклуб Соус,"ул. Благодатная, д. 10 к3",false,true
+89607,17,42c74c69-ff2e-4593-a550-ceabe0e1c8a3,1,Wed Nov 06 2024 19:30:00 GMT+0300 (Moscow Standard Time),500,The Legends,"ул. Садовая, 62",false,false
+89605,17,41f397ab-a828-4b0a-a8f4-6f03a041b463,7,Wed Nov 06 2024 19:30:00 GMT+0300 (Moscow Standard Time),500,Хали-Гали,"Набережная канала Грибоедова, д. 36",false,false

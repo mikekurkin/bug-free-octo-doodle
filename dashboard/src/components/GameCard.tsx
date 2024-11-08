@@ -1,9 +1,10 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { MapPin, Users, Trophy } from 'lucide-react';
-import { Game, GameResult } from '../types/data';
+import { MapPin, Trophy, Users } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { useStorage } from '../contexts/StorageContext';
+import { Game, GameResult } from '../types/data';
 
 interface GameCardProps {
   game: Game;
@@ -12,13 +13,26 @@ interface GameCardProps {
 
 export const GameCard: React.FC<GameCardProps> = ({ game, results }) => {
   const { t } = useTranslation();
-  const participantCount = results.length;
+  const storage = useStorage();
+  const [citySlug, setCitySlug] = useState<string>();
+
   const topScore = Math.max(...results.map(r => r.sum));
   const roundCount = results[0]?.rounds.length || 0;
+  const participantCount = useMemo(() => new Set(results.map(r => r.team_id)).size, [results]);
+
+  useEffect(() => {
+    const loadCitySlug = async () => {
+      const city = await storage.getCityById(game.city_id);
+      if (city) {
+        setCitySlug(city.slug);
+      }
+    };
+    loadCitySlug();
+  }, [game.city_id, storage]);
 
   return (
     <Link
-      to={`/game/${game.id}`}
+      to={`/${citySlug}/game/${game._id}`}
       className="block bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow"
     >
       <div className="p-6">

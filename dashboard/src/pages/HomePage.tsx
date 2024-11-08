@@ -2,28 +2,36 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { GamesTable } from "../components/GamesTable";
-import { cities } from "../data/mockData";
-import { fetchGames } from "../services/api";
-import { Game, QueryParams } from "../types/data";
+import { useStorage } from "../contexts/StorageContext";
+import { City, Game, QueryParams } from "../types/data";
 
 export const HomePage = () => {
+  const storage = useStorage();
   const [games, setGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const { citySlug } = useParams();
   const { t } = useTranslation();
 
-  const city = cities.find(c => c.slug === citySlug);
+  const [city, setCity] = useState<City | null>(null);
+
+  useEffect(() => {
+    const loadCity = async () => {
+      const cityData = await storage.getCityBySlug(citySlug ?? 'spb');
+      setCity(cityData);
+    };
+    loadCity();
+  }, [citySlug, storage]);
 
   const loadGames = useCallback(async (params: QueryParams, isInitial = false) => {
     if (!city) return;
 
     setIsLoading(true);
     try {
-      const response = await fetchGames({
+      const response = await storage.getGames({
         ...params,
-        city_id: city._id.toString()
-      });
+        cityId: city._id
+      }, { withSeries: true });
       setGames(prev => isInitial ? response.data : [...prev, ...response.data]);
       setHasMore(response.hasMore);
       return response.nextCursor;
@@ -32,7 +40,7 @@ export const HomePage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [t, city]);
+  }, [city, storage, t]);
 
   useEffect(() => {
     loadGames({ sort: 'date', order: 'desc' }, true);

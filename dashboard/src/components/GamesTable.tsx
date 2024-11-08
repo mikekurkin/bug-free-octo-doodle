@@ -3,7 +3,6 @@ import { ArrowUpDown, Search } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getGameNumber, series } from '../data/mockData';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import { Game, QueryParams } from '../types/data';
 
@@ -122,18 +121,19 @@ export const GamesTable: React.FC<GamesTableProps> = ({
                     {game._id}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {format(new Date(game.date), 'dd.MM.yyyy')}
+                    {format(game.date, 'dd.MM.yyyy')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {series.find(s => s._id === game.series_id)?.name}
+                    {game.series?.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <Link
-                      to={`/${citySlug}/series/${game.series_id}`}
+                      to={`/${citySlug}/package/${game.series?.slug}/${game.number}`}
                       className="text-blue-600 dark:text-blue-400 hover:underline"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       #{game.number}
-                    </Link>.{getGameNumber(game)}
+                    </Link>{/*.{getGameNumber(game)}*/}
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">

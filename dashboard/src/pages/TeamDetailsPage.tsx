@@ -1,4 +1,4 @@
-import { Medal, Star, Target, Trophy } from 'lucide-react';
+import { Medal, Target, Trophy } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -6,46 +6,68 @@ import { GamesTable } from '../components/GamesTable';
 import { MetricCard } from '../components/MetricCard';
 import { TeamDistributionChart } from '../components/TeamDistributionChart';
 import { TeamPerformanceChart } from '../components/TeamPerformanceChart';
-import { gameResults, teams } from '../data/mockData';
-import { fetchGamesByTeam } from '../services/api';
-import { Game, QueryParams } from '../types/data';
+import { useStorage } from '../contexts/StorageContext';
+import { Game, GameResult, QueryParams } from '../types/data';
 import { calculateEfficiency } from '../utils/teamStats';
 
 export const TeamDetailsPage: React.FC = () => {
   const { t } = useTranslation();
   const { teamSlug } = useParams();
+  const storage = useStorage();
   const [games, setGames] = useState<Game[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [teamData, setTeamData] = useState<{ results: GameResult[] }>({ results: [] });
+  const { citySlug } = useParams();
 
-  // Get team data for metrics and charts
-  const team = teams.find(t => t.slug === teamSlug);
-  const teamData = {
-    results: gameResults.filter(result => result.team_id === team?._id)
-  };
+  useEffect(() => {
+    const loadTeamData = async () => {
+      if (!teamSlug || !citySlug) return;
+
+      const city = await storage.getCityBySlug(citySlug);
+      const cityId = city ? city._id : null;
+      if (!cityId) return;
+
+      const team = await storage.getTeamBySlug(teamSlug, cityId);
+      if (team) {
+        const results = await storage.getTeamResults(team._id, { withTeams: true });
+        setTeamData({ results });
+      }
+    };
+
+    loadTeamData();
+  }, [citySlug, storage, teamSlug]);
 
   const loadGames = useCallback(async (params: QueryParams, isInitial = false) => {
-    if (!team?._id) return;
+    if (!teamSlug) return;
 
     setIsLoading(true);
     try {
-      const response = await fetchGamesByTeam(team._id, params);
-      setGames(prev => isInitial ? response.data : [...prev, ...response.data]);
-      setHasMore(response.hasMore);
-      return response.nextCursor;
+      if (!citySlug) throw new Error("City slug is undefined");
+      const city = await storage.getCityBySlug(citySlug);
+      const cityId = city ? city._id : null;
+      if (!cityId) return;
+
+      const team = await storage.getTeamBySlug(teamSlug, cityId);
+      if (team) {
+        const response = await storage.getGamesByTeam(team._id, params, { withSeries: true });
+        setGames(prev => isInitial ? response.data : [...prev, ...response.data]);
+        setHasMore(response.hasMore);
+        return response.nextCursor;
+      }
     } catch (error) {
       console.error("Failed to fetch games:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [team?._id]);
+  }, [citySlug, storage, teamSlug]);
 
-  // Add this useEffect for initial loading
+  useEffect(() => console.log(games), [games]);
+
   useEffect(() => {
     loadGames({ sort: 'date', order: 'desc' }, true);
   }, [loadGames]);
 
-  // Calculate metrics
   const metrics = [
     {
       title: t('metrics.totalGames'),
@@ -65,20 +87,20 @@ export const TeamDetailsPage: React.FC = () => {
       change: 12.3,
       icon: Medal
     },
-    {
-      title: t('metrics.rankDistribution'),
-      value: (() => {
-        const ranks = teamData.results.reduce((acc, r) => {
-          acc[r.rank] = (acc[r.rank] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
-        const topRank = Object.entries(ranks)
-          .sort((a, b) => b[1] - a[1])[0];
-        return topRank ? t(`ranks.${topRank[0]}`) : t('ranks.none');
-      })(),
-      change: -2.1,
-      icon: Star
-    }
+    // {
+    //   title: t('metrics.rankDistribution'),
+    //   value: (() => {
+    //     const ranks = teamData.results.reduce((acc, r) => {
+    //       acc[r.rank_id] = (acc[r.rank_id] || 0) + 1;
+    //       return acc;
+    //     }, {} as Record<string, number>);
+    //     const topRank = Object.entries(ranks)
+    //       .sort((a, b) => b[1] - a[1])[0];
+    //     return topRank ? t(`ranks.${topRank[0]}`) : t('ranks.none');
+    //   })(),
+    //   change: -2.1,
+    //   icon: Star
+    // }
   ];
 
   return (
@@ -98,7 +120,7 @@ export const TeamDetailsPage: React.FC = () => {
           <TeamDistributionChart
             pointsValues={teamData.results.map((r) => r.sum)}
             efficiencyValues={teamData.results.map((r) => {
-              const results = gameResults.filter((gr) => gr.game_id === r.game_id);
+              const results = teamData.results.filter((gr) => gr.game_id === r.game_id);
               const maxScore = Math.max(...results.map((gr) => gr.sum));
               return calculateEfficiency(r.sum, maxScore);
             })}

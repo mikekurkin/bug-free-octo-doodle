@@ -1,29 +1,50 @@
 import { format } from 'date-fns';
 import { Package, Star, Target, Trophy, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { GameResultsTable } from '../components/GameResultsTable';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import { RoundPerformanceChart } from '../components/RoundPerformanceChart';
-import { cities, gameResults, games, series } from '../data/mockData';
+import { useStorage } from '../contexts/StorageContext';
+import { City, Game, GameResult, Series } from '../types/data';
 
 export const GameDetailsPage = () => {
   const { t } = useTranslation();
+  const storage = useStorage();
   const { citySlug, id: gameId } = useParams();
-  const city = cities.find(c => c.slug === citySlug);
+
+  const [city, setCity] = useState<City | null>(null);
+  const [currentGame, setCurrentGame] = useState<Game | null>(null);
+  const [gameData, setGameData] = useState<GameResult[]>([]);
+  const [currentSeries, setCurrentSeries] = useState<Series | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!citySlug || !gameId) return;
+
+      const cityData = await storage.getCityBySlug(citySlug);
+      setCity(cityData);
+
+      const gameData = await storage.getGameById(parseInt(gameId), { withSeries: true });
+      setCurrentGame(gameData);
+
+      if (gameData) {
+        const results = await storage.getGameResults(gameData._id);
+        setGameData(results);
+
+        const seriesData = await storage.getSeriesById(gameData.series_id);
+        setCurrentSeries(seriesData);
+      }
+    };
+
+    loadData();
+  }, [storage, citySlug, gameId]);
 
   if (!gameId || !city) {
     return <div>{t('errors.gameNotFound')}</div>;
   }
-
-  const currentGame = games.find(game =>
-    game._id === parseInt(gameId) //&& game.city_id === city._id
-  );
-
-  if (!currentGame) {
-    return <div>{t('errors.gameNotFound')}</div>;
-  }
-
-  const gameData = gameResults.filter(result => result.game_id === parseInt(gameId));
+  if (!currentGame) { return <LoadingSpinner />; }
 
   const averageScore = Math.round(gameData.reduce((sum, result) => sum + result.sum, 0) / gameData.length);
   const topScore = Math.max(...gameData.map(result => result.sum));
@@ -35,12 +56,12 @@ export const GameDetailsPage = () => {
       title: t('metrics.package'),
       value: (
         <Link
-          to={`/${citySlug}/series/${currentGame.series_id}/package/${currentGame.number}`}
+          to={`/${citySlug}/package/${currentGame.series?.slug}/${currentGame.number}`}
           className="text-blue-600 hover:underline flex items-center space-x-1"
         >
           <span>#{currentGame.number}</span>
           <span className="text-sm text-gray-500">
-            {t('metrics.inSeries', { series: series.find(s => s._id === currentGame.series_id)?.name })}
+            {t('metrics.inSeries', { series: currentSeries?.name })}
           </span>
         </Link>
       ),
@@ -99,13 +120,13 @@ export const GameDetailsPage = () => {
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Date</p>
               <p className="text-lg font-medium text-gray-900 dark:text-white">
-                {format(new Date(currentGame.date), 'dd.MM.yyyy')}
+                {format(currentGame.date, 'dd.MM.yyyy')}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">City</p>
               <p className="text-lg font-medium text-gray-900 dark:text-white">
-                {cities.find(c => c._id === currentGame.city_id)?.name}
+                {city.name}
               </p>
             </div>
             <div>
@@ -121,7 +142,7 @@ export const GameDetailsPage = () => {
       </div>
 
       <div className="mb-8">
-        <GameResultsTable gameId={gameId} />
+        <GameResultsTable gameId={currentGame._id} />
       </div>
     </div>
   );

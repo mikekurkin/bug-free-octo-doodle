@@ -2,36 +2,54 @@ import { ArrowUpDown, Search } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
-import { cities, games } from '../data/mockData';
-import { fetchTeamStats } from '../services/api';
-import { TeamStats } from '../types/data';
+import { useStorage } from '../contexts/StorageContext';
+import { QueryParams, TeamStats } from '../types/data';
 
 export const TeamStatsPage = () => {
   const { t } = useTranslation();
   const { citySlug } = useParams();
-  const city = cities.find(c => c.slug === citySlug);
+  const storage = useStorage();
+  const [city, setCity] = useState<{ _id: number; slug: string } | null>(null);
 
   const [selectedSeries, setSelectedSeries] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState<string>();
   const [teamStats, setTeamStats] = useState<TeamStats[]>([]);
+  const [series, setSeries] = useState<Series[]>([]);
   const [sort, setSort] = useState<{ field: keyof TeamStats; order: 'asc' | 'desc' }>({
     field: 'totalPoints',
     order: 'desc'
   });
 
   const loadingRef = useRef<HTMLDivElement>(null);
-  const series = ['all', ...new Set(games.map(game => game.series))];
+
+  useEffect(() => {
+    const loadCity = async () => {
+      if (!citySlug) return;
+      const foundCity = await storage.getCityBySlug(citySlug);
+      setCity(foundCity);
+    };
+    loadCity();
+  }, [citySlug, storage]);
+
+  useEffect(() => {
+    const loadSeries = async () => {
+      const allSeries = await storage.getSeries();
+      setSeries(allSeries);
+    };
+    loadSeries();
+  }, [storage]);
 
   const loadTeamStats = useCallback(async (params: QueryParams, isInitial = false) => {
     if (loading || !city) return;
     setLoading(true);
 
     try {
-      const response = await fetchTeamStats({
+      const response = await storage.getTeamStats({
         ...params,
-        city_id: city._id.toString()
+        cityId: city._id,
+        series: selectedSeries === 'all' ? undefined : selectedSeries
       });
 
       setTeamStats(prev => isInitial ? response.data : [...prev, ...response.data]);
@@ -41,17 +59,16 @@ export const TeamStatsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [loading, city, t]);
+  }, [loading, city, selectedSeries, storage, t]);
 
   useEffect(() => {
     loadTeamStats({
       cursor: undefined,
       search,
-      series: selectedSeries === 'all' ? undefined : selectedSeries,
       sort: sort.field,
       order: sort.order
     }, true);
-  }, [cursor, loading, search, selectedSeries, sort.field, sort.order, t, loadTeamStats]);
+  }, [cursor, loading, search, selectedSeries, sort.field, sort.order, loadTeamStats]);
 
   const handleSort = (field: keyof TeamStats) => {
     setSort(prev => ({
@@ -88,9 +105,10 @@ export const TeamStatsPage = () => {
               bg-white dark:bg-gray-800 text-gray-900 dark:text-white
               focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none"
           >
+            <option value="all">{t('teamStats.allSeries')}</option>
             {series.map((s) => (
-              <option key={s} value={s} className="capitalize">
-                {s}
+              <option key={s._id} value={s._id} className="capitalize">
+                {s.name}
               </option>
             ))}
           </select>
@@ -120,13 +138,13 @@ export const TeamStatsPage = () => {
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {teamStats.map((stat) => (
-                  <tr key={stat.team} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <tr key={stat._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
                         to={`/${citySlug}/teams/${stat.slug}`}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                       >
-                        {stat.team_name}
+                        {stat.name}
                       </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
